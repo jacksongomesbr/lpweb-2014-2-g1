@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+	<head>
+		<meta charset="utf-8">
+		<title>LPWEB Aula HTML e CSS</title>
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script src="jquery.chained.min.js"></script>
+		<script>
+		$(document).ready(function(){
+			$("#produto").chained("#categoria");
+			listarProdutos();
+		});
+		
+		var produtos = new Array();
+		var vendas = new Array();
+		
+		function Produto(codigo, nome, categoria, preco, quantidadeEmEstoque) {
+			this.codigo = codigo;
+			this.nome = nome;
+			this.categoria = categoria;
+			this.preco = preco;
+			this.quantidadeEmEstoque = quantidadeEmEstoque;
+			this.quantidadeVendida = 0;
+		}
+		
+		function Venda(codigo, data, cliente, produto, quantidade, vendaConcluida) {
+			this.codigo = codigo;
+			this.data = data;
+			this.cliente = cliente;
+			this.produto = produto;
+			this.quantidade = quantidade;
+			this.valorTotal = produto.preco * quantidade;
+			this.vendaConcluida = vendaConcluida;
+		}
+		
+		produtos.push(new Produto(1, 'Televisor', 'Eletrônicos', 1500, 10));
+		produtos.push(new Produto(2, 'Refrigerador', 'Eletrodomésticos', 2000, 10));
+		produtos.push(new Produto(3, 'Panela', 'Utilidades domésticas', 100, 10));
+		produtos.push(new Produto(4, 'Espelho', 'Cama e Banho', 50, 10));
+		
+		function encontrarProduto(codigo) {
+			for(var i = 0; i < produtos.length; i++) {
+				if (produtos[i].codigo == codigo) {
+					return produtos[i];
+				}
+			}
+			return null;
+		}
+		
+		function encontrarVenda(codigo) {
+			for(var i = 0; i < vendas.length; i++) {
+				if (vendas[i].codigo == codigo) {
+					return vendas[i];
+				}
+			}
+			return null;
+		}		
+		
+		function salvar() {
+			var codigo = vendas.length;
+			var cliente = $("#cliente").val();
+			var data = $("#data").val();
+			var codigoDoProduto = $('#produto option:selected').val();
+			var quantidade = $("#quantidade").val();
+			var vendaConcluida = $('input[name=vendaConcluida]:checked').val() ? true : false;
+			var produto = encontrarProduto(codigoDoProduto);
+			
+			if (produto.quantidadeEmEstoque < quantidade) {
+				alert('Por favor, altere a quantidade, pois o estoque deste produto é insuficiente');
+				return false;
+			}
+			
+			produto.quantidadeEmEstoque -= quantidade;
+			produto.quantidadeVendida++;
+			vendas.push(new Venda(codigo, data, cliente, produto, quantidade, vendaConcluida));
+			
+			listarVendas();
+			limparFormulario();
+			listarProdutos();
+			
+			return false;
+		}
+		
+		function limparFormulario() {
+			$('form')[0].reset();
+			$('#cliente').focus();
+		}
+		
+		function listarVendas() {
+			$('#tabela-body').empty();
+			for(var i = 0; i < vendas.length; i++) {
+				if (vendas[i]) {
+					var linha = '<tr ' + (vendas[i].vendaConcluida ? 'class="success"' : '') + '>'
+					+ '<td>' + vendas[i].codigo + '</td>'
+					+ '<td>' + vendas[i].data + '</td>'
+					+ '<td>' + vendas[i].valorTotal + '</td>'
+					+ '<td><button class="btn btn-default btn-xs" onclick="excluirVenda(' + vendas[i].codigo + ');"><span class="glyphicon glyphicon-remove"></span></button> <button class="btn btn-default btn-xs" onclick="consultarVenda(' + vendas[i].codigo + ');"><span class="glyphicon glyphicon-zoom-in"></span></button> <button class="btn btn-default btn-xs" onclick="alterarSituacaoDaVenda(' + vendas[i].codigo + ');"><span class="glyphicon glyphicon-pushpin"></span></button></td>'
+					+ '</tr>';
+					$('#tabela-body').append(linha);
+				}
+			}
+		}
+		
+		function listarProdutos() {
+			$('#tabela-produtos-body').empty();
+			for(var i = 0; i < produtos.length; i++) {
+				var linha = '<tr>'
+				+ '<td>' + produtos[i].codigo + '</td>'
+				+ '<td>' + produtos[i].nome + '</td>'
+				+ '<td>' + produtos[i].categoria + '</td>'
+				+ '<td>' + produtos[i].preco + '</td>'
+				+ '<td>' + produtos[i].quantidadeEmEstoque + '</td>'
+				+ '<td>' + produtos[i].quantidadeVendida + '</td>'
+				$('#tabela-produtos-body').append(linha);
+			}
+		}		
+		
+		function excluirVenda(codigo) {
+			if (confirm('Tem certeza que deseja excluir esta venda?')) {
+				for(var i = 0; i < vendas.length; i++) {
+					if (vendas[i].codigo == codigo) {
+						vendas[i] = null;
+						listarVendas();
+						return;
+					}
+				}
+			}
+		}
+		
+		function consultarVenda(codigo) {
+			venda = encontrarVenda(codigo);
+			alert('Informações da venda:\n\n'
+			+ 'Código: ' + venda.codigo + '\n'
+			+ 'Cliente: ' + venda.cliente + '\n'
+			+ 'Data: ' + venda.data + '\n'
+			+ 'Produto: ' + venda.produto.nome + '(' + venda.produto.categoria + ')\n'
+			+ 'Quantidade: ' + venda.quantidade + '\n'
+			+ 'Valor total: ' + venda.valorTotal + '\n'
+			+ 'Venda concluída? ' + venda.vendaConcluida);
+		}
+		
+		function alterarSituacaoDaVenda(codigo) {
+			venda = encontrarVenda(codigo);
+			venda.vendaConcluida = !venda.vendaConcluida;
+			listarVendas();
+		}
+		</script>
+	</head>
+	
+	<body>
+		<div class="container">
+			<div class="row">
+				<p>Linguagem de Programação para Web</p>
+				<h1>Avaliação de G1 - Cadastro de vendas</h1>
+				<hr></hr>
+			</div>
+
+			<div class="row">
+				<div class="col-md-6">
+					<form role="form" onsubmit="return salvar();">
+						<div class="form-group">
+							<label for="cliente">Cliente</label>
+							<input type="text" class="form-control input-lg" name="cliente" id="cliente" placeholder="Informe o nome completo do cliente" autofocus required>
+						</div>
+						<div class="row">
+							<div class="col-md-6">
+								<div class="form-group">
+									<label for="data">Data</label>
+									<input type="date" name="data" id="data" class="form-control" required>
+								</div>								
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="categoria">Categoria</label>
+							<select class="form-control" name="categoria" id="categoria" required>
+								<option value="Eletrônicos">Eletrônicos</option>
+								<option value="Eletrodomésticos">Eletrodomésticos</option>
+								<option value="Utilidades Domésticas">Utilidades Domésticas</option>
+								<option value="Cama e Banho">Cama e Banho</option>
+							</select>							
+						</div>
+						<div class="form-group">
+							<label for="produto">Produto</label>
+							<select class="form-control" name="produto" id="produto" required>
+								<option value="1" class="Eletrônicos">Televisor</option>
+								<option value="2" class="Eletrodomésticos">Refrigerador</option>
+								<option value="3" class="Utilidades Domésticas">Panela</option>
+								<option value="4" class="Cama e Banho">Espelho
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="quantidade">Quantidade</label>
+							<input class="form-control" type="number" id="quantidade" name="quantidade" required />
+						</div>						
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" name="vendaConcluida" value="1"> Venda concluída?
+							</label>
+						</div>
+					  <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-ok"></span> Salvar</button>
+					  <button type="reset" class="btn">Limpar</button>
+					</form>					
+				</div>
+				
+				<div class="col-md-6">
+					<p>Vendas cadastradas</p>
+					<table id="vendas" class="table table-stripped table-bordered table-hover">
+						<thead>
+							<tr>
+								<th width="50">#</th>
+								<th>Data</th>
+								<th>Valor total</th>
+								<th>Ações</th>
+							</tr>
+						</thead>
+						<tbody id="tabela-body">
+							
+						</tbody>
+					</table>			
+
+					<p>Produtos</p>
+					<table id="produtos" class="table table-stripped table-bordered table-hover">
+						<thead>
+							<tr>
+								<th width="50">#</th>
+								<th>Nome</th>
+								<th>Categoria</th>
+								<th>Preço</th>
+								<th>Qtd. Estoque</th>
+								<th>Qtd. Vendida</th>
+							</tr>
+						</thead>
+						<tbody id="tabela-produtos-body">
+							
+						</tbody>
+					</table>	
+				</div>
+			</div>
+			
+			
+		</div>
+	</body>
+</html>
